@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Любовная лихорадка</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            text-align: center;
+            z-index: 10;
+            transition: opacity 0.5s ease;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        h1 {
+            font-size: 4em;
+            margin-bottom: 30px;
+            color: #ff6b6b;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.7);
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        h2 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #8A2BE2;
+        }
+
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #ff5252);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            font-size: 1.4em;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+        }
+
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .menu-button {
+            min-width: 250px;
+        }
+
+        .stats {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            font-size: 1.3em;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 25px;
+            border-radius: 15px;
+            z-index: 5;
+            backdrop-filter: blur(5px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: white;
+            font-size: 1.1em;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 25px;
+            border-radius: 15px;
+            z-index: 5;
+            backdrop-filter: blur(5px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .level-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .level-button {
+            width: 180px;
+            height: 180px;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5em;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .level-1 {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .level-2 {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+        }
+
+        .level-3 {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+        }
+
+        .level-locked {
+            background: linear-gradient(135deg, #666, #333) !important;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .level-number {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .level-score {
+            position: absolute;
+            bottom: 10px;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .loading-screen {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+        }
+
+        .loading-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 800px;
+            padding: 20px;
+        }
+
+        .loading-image {
+            width: 300px;
+            height: 200px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .loading-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .loading-text {
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: #8A2BE2;
+        }
+
+        .tip-container {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 150px;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            padding-bottom: 30px;
+        }
+
+        .tip-box {
+            width: 100%;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            text-align: center;
+            font-size: 2em;
+            color: white;
+            border-top: 2px solid rgba(255, 255, 255, 0.2);
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .level-info {
+            font-size: 1.2em;
+            margin-top: 20px;
+            color: #ff8e8e;
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+        }
+
+        .reset-button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            margin-top: 10px;
+            padding: 12px 25px;
+            font-size: 1em;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .progress-bar {
+            width: 300px;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #ff8e8e);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .game-over-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .replay-button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+        }
+    </style>
+</head>
+<body>
+<div id="gameContainer">
+    <div id="loadingScreen" class="screen loading-screen">
+        <div class="loading-content">
+            <div class="loading-image">
+                <img src="https://i.postimg.cc/FRn5P9M4/sd-ultra-In-the-garden-of-love-a-43799292.png"
+                     alt="Сад" id="loadingImage">
+            </div>
+            <h1>💘 Любовная лихорадка 💘</h1>
+            <div class="loading-text" id="loadingText">Загрузка игры...</div>
+            <div class="progress-bar">
+                <div class="progress" id="progressBar"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="menuScreen" class="screen">
+        <h1>💘 Любовная лихорадка 💘</h1>
+        <p style="font-size: 1.2em; margin-bottom: 40px; color: #8A2BE2;">
+            Стреляй в сердца! Фиолетовые: +1, Розовые: +5, Красные: -2
+        </p>
+        <button class="menu-button" id="playButton">Выбрать уровень</button>
+        <button class="menu-button reset-button" id="resetProgressButton">Новая игра</button>
+        <div class="level-info" id="levelProgress">
+            Прогресс: <span id="unlockedLevels">1</span>/3 уровней открыто
+        </div>
+    </div>
+
+    <div id="levelSelectScreen" class="screen">
+        <h2>Выберите уровень</h2>
+        <div class="level-container">
+            <div class="level-button level-1" id="level1">
+                <div class="level-number">1</div>
+                <div>Легкий</div>
+                <div class="level-score" id="level1Score">Лучший: 0</div>
+            </div>
+            <div class="level-button level-2 level-locked" id="level2">
+                <div class="level-number">2</div>
+                <div>Средний</div>
+                <div class="level-score" id="level2Score">Заблокирован</div>
+            </div>
+            <div class="level-button level-3 level-locked" id="level3">
+                <div class="level-number">3</div>
+                <div>Сложный</div>
+                <div class="level-score" id="level3Score">Заблокирован</div>
+            </div>
+        </div>
+        <button id="backToMenuButton">Назад в меню</button>
+    </div>
+
+    <div id="gameScreen" class="screen hidden">
+        <canvas id="gameCanvas"></canvas>
+        <div class="stats">
+            <div>Уровень: <span id="currentLevel">1</span></div>
+            <div>Счет: <span id="score">0</span></div>
+            <div>Время: <span id="timer">60</span>с</div>
+        </div>
+        <div class="instructions">
+            💜 Фиолетовое: +1 очко<br>
+            💖 Розовые: +5 очков<br>
+            ❤️ Красные: -2 очка
+        </div>
+    </div>
+
+    <div id="gameOverScreen" class="screen">
+        <h2 id="gameOverTitle">Игра окончена!</h2>
+        <p style="font-size: 1.5em;">Ваш счет: <span id="finalScore">0</span></p>
+        <p style="font-size: 1.2em; color: #8A2BE2;" id="levelUnlockMessage"></p>
+        <div class="game-over-buttons">
+            <button class="replay-button" id="replayLevelButton">Переиграть уровень</button>
+            <button id="nextLevelButton" style="display: none;">Следующий уровень</button>
+            <button id="restartButton">Выбрать другой уровень</button>
+            <button id="menuButton">В главное меню</button>
+        </div>
+    </div>
+
+    <div id="tipScreen" class="screen">
+        <div class="tip-container">
+            <div class="tip-box" id="currentTip"></div>
+        </div>
+    </div>
+</div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
