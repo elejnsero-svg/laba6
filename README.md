@@ -24,3 +24,5 @@
 
 1. Скачайте или клонируйте репозиторий:
 - `git clone https://github.com/your-username/heart-hunter.git'
+
+https://elejnsero-svg.github.io/laba6/
